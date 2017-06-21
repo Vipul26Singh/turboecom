@@ -237,6 +237,7 @@ class EbayConfig
 					     )
 						),
 					'submit' => array(
+							'id' => 'ebayProductSaveMaster',
 							'title' => $this->this_module->l('Save'),
 							'class' => 'btn btn-default pull-right'
 							)

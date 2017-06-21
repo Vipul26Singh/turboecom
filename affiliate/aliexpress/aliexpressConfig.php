@@ -43,12 +43,10 @@ class AliexpressConfig
 
 	public function getAliexpressContent()
 	{
-
 		$output = null;
 
 		if (Tools::isSubmit('aliexpressconfigsubmit'.$this->this_module->name))
 		{
-
 			$app_key = strval(Tools::getValue('TurboeCom_aliexpress_app_key'));
 			$app_secret = strval(Tools::getValue('TurboeCom_aliexpress_app_secret'));
 			$tracking_id = strval(Tools::getValue('TurboeCom_aliexpress_tracking_id'));
@@ -68,22 +66,22 @@ class AliexpressConfig
 			}
 
 			if (!empty($tracking_id))
-                        {
-                                Configuration::updateValue('TurboeCom_aliexpress_tracking_id', $tracking_id);
-                        }else{
-                                $output .= $this->this_module->displayError($this->this_module->l('Tracking Id can not be empty'));
-                        }
+			{
+				Configuration::updateValue('TurboeCom_aliexpress_tracking_id', $tracking_id);
+			}else{
+				$output .= $this->this_module->displayError($this->this_module->l('Tracking Id can not be empty'));
+			}
 		}
 
 		if (Tools::isSubmit('aliexpresssearchsubmit'.$this->this_module->name))
 		{
 			$app_key = NULL;
-                        $app_secret = NULL; 
-                        $tracking_id = NULL;
+			$app_secret = NULL; 
+			$tracking_id = NULL;
 			$is_valid = true;
 			$aliexpress_category = strval(Tools::getValue('TurboeCom_aliexpress_category'));
 			$search_keyword = strval(Tools::getValue('TurboeCom_aliexpress_keyword'));
-			$aliexpress_count = strval(Tools::getValue('TurboeCom_aliexpress_fetch_count'));
+			$aliexpress_page = strval(Tools::getValue('TurboeCom_aliexpress_fetch_count'));
 			$prestashop_category = strval(Tools::getValue('TurboeCom_aliexpress_prestashop_category'));
 
 			if(empty($aliexpress_category)){
@@ -96,11 +94,11 @@ class AliexpressConfig
 				$is_valid = false;
 			}
 
-			if(empty($aliexpress_count)){
-				$output .= $this->this_module->displayError($this->this_module->l('Please ennter number of products to be fetched'));
+			if(empty($aliexpress_page)){
+				$output .= $this->this_module->displayError($this->this_module->l('Please enter number page number'));
 				$is_valid = false;
-			}else if(!is_numeric($aliexpress_count)){
-				$output .= $this->this_module->displayError($this->this_module->l('Number of products to be fetched is not numeric'));
+			}else if(!is_numeric($aliexpress_page)){
+				$output .= $this->this_module->displayError($this->this_module->l('Page number is not numeric'));
 				$is_valid = false;
 			}
 
@@ -124,46 +122,62 @@ class AliexpressConfig
 				$aliexpress = new aliexpressAPI($app_key, $app_secret, $tracking_id);
 
 				$arr = array();
-				$page_count = $aliexpress_count/10;
-				if($page_count == 0){
-					$page_count = 1;
-				}
 
-				for($i=1; $i<=$page_count; $i++){
-					$arr = $aaliexpress->searchProductHelper($search_keyword, $aliexpress_category, $i);
+				$arr = $aliexpress->searchProductHelper($search_keyword, $aliexpress_category, $aliexpress_page);
 
-					foreach($arr as $p){
+				$displayContent = null;
 
-						if($this->this_module->fetchAffiliateProductId($p['asin']) == 0){
-							$short_description = "<ul>";
-							foreach($p['description'] as $desc){
-								$desc = trim($desc);
-								$short_description .= "<li>{$desc}</li>";
-							}
-							$short_description .="</ul><br><br>";
-							$short_description .= "<p><a href={$p['link']} target='_blank' class='btn btn-default'>BUY NOW</a></p>";
+				$displayContent .= "<div id='content' class='bootstrap'><br><br><br><div><button type='button' class='btn btn-success btn-lg' onclick='nextAliexpress(this)'>Next Page</button></div><br><table id='save-product' class='table table-bordered table-hover'><thead><tr><th>Image</th><th>Name</th><th>Description</th><th>Action</th><th class='hidden'>Content</th></tr></thead><tbody>";
 
-							$product_id = $this->this_module->addProduct($p['name'], $prestashop_category, $p['price'], $short_description);
 
-							if($product_id != 0){
-								$this->this_module->updateProduct("affiliate_product_id", $p['asin'], $product_id);
-								$this->this_module->updateProduct("affiliate_website", "aliexpress.com", $product_id);
+				$count = 0;
 
-								$imageAdd = new ImageAdd();
-								try{
-									$image_id = $imageAdd->insertImageInPrestashop($product_id, $p['images'], $p['name']);
-									if($image_id == 0){
-                                                                                $this->this_module->deleteProduct($product_id);
-                                                                        }
-                                                                }catch(Exception $e){
-                                                                                $this->this_module->deleteProduct($product_id);
-                                                                }
+				foreach($arr as $p){
 
-		
+					$count++;
+					$short_description = "<ul>";
+
+					$des_count = 0;
+
+					if(!empty($p['description'])){
+						foreach($p['description'] as $desc){
+							$des_count++;
+							$desc = trim($desc);
+							$short_description .= "<li>{$desc}</li>";
+
+							if($des_count==3){
+								break;
 							}
 						}
 					}
+
+					$short_description .="</ul><br><br>";
+					$short_description .= "<p><a href={$p['link']} target='_blank' class='btn btn-default'>BUY NOW</a></p>";
+
+					$array_send = array();
+					$array_send['name'] = str_replace('"', '-inch', $p['name']);
+
+					$array_send['short_description'] = $short_description;
+					$array_send['images'] = $p['images'];
+					$array_send['prestashop_category'] = $prestashop_category;
+					$array_send['price'] = $p['price'];
+					$array_send['asin'] = $p['asin'];
+					$array_send['website'] = 'aliexpress.com';
+
+					$json_send = json_encode($array_send, true);
+
+					$displayContent .= "<tr id='{$count}'><td><a class = 'thumbnail' target='_blank' href='{$p['images']}'><img src='{$p['images']}' style='height:100px;' class='img-thumbnail' alt='NA' ></a></td><td>{$p['name']}</td><td>{$short_description}</td><td><button type='button' class='btn btn-danger delete-row' onclick='deleteRow(this)'>Remove</button>  <button type='button' class='btn btn-primary' data-loading-text=\"<i class='icon-spinner icon-spin icon-large'></i>\" id='{$count}_add_button' onclick='addRow({$count}, this)'>Add</button></td><td class='hidden' id='data_{$count}'>{$json_send}</td></tr>";
 				}
+				$displayContent .= "</tbody><div></table><div><button type='button' class='btn btn-success btn-lg' onclick='nextAliexpress(this)'>Next Page</button></div></div>";
+
+				Configuration::updateValue('aliexpress_page_number', $aliexpress_page+1);
+				Configuration::updateValue('aliexpress_keyword', $search_keyword);
+				Configuration::updateValue('aliexpress_prestashop_category', $prestashop_category);
+				Configuration::updateValue('aliexpress_category', $aliexpress_category);
+				echo $displayContent;
+
+
+
 			}
 		}
 		return $output;
@@ -221,8 +235,8 @@ class AliexpressConfig
 					     ),
 					array(
 						'type' => 'text',
-						'label' => $this->this_module->l('Number of products to be fetched'),
-						'desc' => $this->this_module->l('Choose multiple of 10'),
+						'label' => $this->this_module->l('Start page for pagination'),
+                                                'desc' => $this->this_module->l('Do not change if you are not clear'),
 						'name' => 'TurboeCom_aliexpress_fetch_count',
 						'required' => true
 					     ),
@@ -240,6 +254,7 @@ class AliexpressConfig
 					     )
 						),
 					'submit' => array(
+							'id' => 'aliexpressProductSaveMaster',
 							'title' => $this->this_module->l('Save'),
 							'class' => 'btn btn-default pull-right'
 							)
@@ -276,7 +291,11 @@ class AliexpressConfig
 					)
 				);
 
-		$helper->fields_value['TurboeCom_aliexpress_fetch_count'] = 20;
+		$helper->fields_value['TurboeCom_aliexpress_fetch_count'] = Configuration::get('aliexpress_page_number');
+                $helper->fields_value['TurboeCom_aliexpress_keyword'] = Configuration::get('aliexpress_keyword');
+                 $helper->fields_value['TurboeCom_aliexpress_prestashop_category'] = Configuration::get('aliexpress_prestashop_category');
+                 $helper->fields_value['TurboeCom_aliexpress_category'] = Configuration::get('aliexpress_category');
+
 
 		return $helper->generateForm($fields_form);
 	}
