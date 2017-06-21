@@ -124,7 +124,7 @@ class AmazonConfig
 							$array_send = array();
 							$array_send['name'] = str_replace('"', '-inch', $p['name']);
 
-							$array_send['short_description'] = htmlspecialchars(htmlentities($short_description));
+							$array_send['short_description'] = $short_description;
 							$array_send['images'] = $p['images'];
 							$array_send['prestashop_category'] = $prestashop_category;
 							$array_send['price'] = $p['price'];

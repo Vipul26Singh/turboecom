@@ -13,6 +13,7 @@ function addRow(id, btn){
                         alert(xhr.responseText);
                     },
                     success: function(data) {
+			alert(data);
                     }
     });
 }

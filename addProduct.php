@@ -188,12 +188,16 @@ class ImageAdd
 
 									if($image_id == 0){
 										deleteProduct($product_id);
+									}else{
+										echo "Product added successfully";
 									}
 								}catch(Exception $e){
                                                                                 deleteProduct($product_id);
                                                                 }
 
-                           }
+                           }else{
+			echo "Product already existed";
+		}
 
 	function updateProduct($column, $val, $product_id){
                 $sql = "update "._DB_PREFIX_."product set  {$column} = '{$val}' WHERE id_product = '{$product_id}'";
