@@ -1,10 +1,45 @@
-Array
+DbQuery Object
 (
-    [name] => PUMA Men's Roma Basic Fashion Sneaker, White/New Navy - 5 D(M) US
-    [short_description] => &amp;lt;ul&amp;gt;&amp;lt;li&amp;gt;Retro-inspired sneaker featuring signature Formstrips at sides and exaggerated-lug outsole for traction&amp;lt;/li&amp;gt;&amp;lt;li&amp;gt;T-toe construction&amp;lt;/li&amp;gt;&amp;lt;li&amp;gt;Cushioned midsole with arch support&amp;lt;/li&amp;gt;&amp;lt;/ul&amp;gt;&amp;lt;br&amp;gt;&amp;lt;br&amp;gt;&amp;lt;p&amp;gt;&amp;lt;a href=https://www.amazon.com/PUMA-Basic-Fashion-Sneaker-White/dp/B007J4IYF8?psc=1&amp;amp;SubscriptionId=AKIAJQVUBYVW765CZUPQ&amp;amp;tag=vipulsinghtha-20&amp;amp;linkCode=xm2&amp;amp;camp=2025&amp;amp;creative=165953&amp;amp;creativeASIN=B007J4IYF8 target='_blank' class='btn btn-default'&amp;gt;BUY NOW&amp;lt;/a&amp;gt;&amp;lt;/p&amp;gt;
-    [images] => https://images-na.ssl-images-amazon.com/images/I/31NsLGod-jL.jpg
-    [prestashop_category] => 11
-    [price] => 44.96
-    [asin] => B007J4IYF8
-    [website] => amazon.com
+    [query:protected] => Array
+        (
+            [type] => SELECT
+            [select] => Array
+                (
+                    [0] => count(*) as count
+                )
+
+            [from] => Array
+                (
+                    [0] => `ps_product`
+                )
+
+            [join] => Array
+                (
+                )
+
+            [where] => Array
+                (
+                    [0] => affiliate_product_id = '0849942179'
+                )
+
+            [group] => Array
+                (
+                )
+
+            [having] => Array
+                (
+                )
+
+            [order] => Array
+                (
+                )
+
+            [limit] => Array
+                (
+                    [offset] => 0
+                    [limit] => 0
+                )
+
+        )
+
 )

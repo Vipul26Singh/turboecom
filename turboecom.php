@@ -2,8 +2,6 @@
 if (!defined('_PS_VERSION_'))
 exit;
 
-require_once(__DIR__."/imageHelper.php");
-
 if(file_exists(__DIR__."/affiliate/amazon/amazonAPI.php")){
 	require_once(__DIR__."/affiliate/amazon/amazonAPI.php");
 	require_once(__DIR__."/affiliate/amazon/amazonConfig.php");

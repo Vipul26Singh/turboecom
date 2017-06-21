@@ -107,13 +107,13 @@ class AmazonConfig
 						$count++;
 						$short_description = "<ul>";
 
-							$count = 0;
+							$des_count = 0;
                                                         foreach($p['description'] as $desc){
-								$count++;
+								$des_count++;
                                                                 $desc = trim($desc);
                                                                 $short_description .= "<li>{$desc}</li>";
                                                         		
-								if($count==3){
+								if($des_count==3){
 									break;
 								}
 							}
@@ -133,7 +133,7 @@ class AmazonConfig
 
 							$json_send = json_encode($array_send, true);
 
-                                                        $displayContent .= "<tr id='{$count}'><td><a class = 'thumbnail' target='_blank' href='{$p['images']}'><img src='{$p['images']}' style='height:100px;' class='img-thumbnail' alt='NA' ></a></td><td>{$p['name']}</td><td>{$short_description}</td><td><button type='button' class='btn btn-danger delete-row' onclick='deleteRow(this)'>Remove</button>  <button type='button' class='btn btn-primary' onclick='addRow({$count}, this)'>Add</button></td><td class='hidden' id='data_{$count}'>{$json_send}</td></tr>";
+                                                        $displayContent .= "<tr id='{$count}'><td><a class = 'thumbnail' target='_blank' href='{$p['images']}'><img src='{$p['images']}' style='height:100px;' class='img-thumbnail' alt='NA' ></a></td><td>{$p['name']}</td><td>{$short_description}</td><td><button type='button' class='btn btn-danger delete-row' onclick='deleteRow(this)'>Remove</button>  <button type='button' class='btn btn-primary' data-loading-text=\"<i class='icon-spinner icon-spin icon-large'></i>\" id='{$count}_add_button' onclick='addRow({$count}, this)'>Add</button></td><td class='hidden' id='data_{$count}'>{$json_send}</td></tr>";
 					}
 					$displayContent .= "</tbody><div></table><div><button type='button' class='btn btn-success btn-lg' onclick='nextAmazon(this)'>Next Page</button></div></div>";
 

@@ -1,8 +1,9 @@
 function addRow(id, btn){
-	var elements  = document.getElementById(id).cells[4].innerHTML;       
-	
+	var id_data = 'data_'+id;
+	var elements  = document.getElementById(id_data).innerHTML;       
+	var id_add_button = id+'_add_button';
 	var row = btn.parentNode.parentNode;
-	row.parentNode.removeChild(row);
+
 
 	$.ajax({
                     'type': 'POST',
@@ -15,6 +16,9 @@ function addRow(id, btn){
                     success: function(data) {
 			alert(data);
                     }
-    });
+    	});
+
+	row.parentNode.removeChild(row);
+
 }
 
