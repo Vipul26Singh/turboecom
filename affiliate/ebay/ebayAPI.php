@@ -33,13 +33,13 @@ class ebayAPI
 
 				$arr[] = array(
                                                         "vendor" => "ebay.".$this->region,
-                                                        "name" => $item->title,
-                                                        "price" => $item->sellingStatus->currentPrice,
-                                                        "reg_price" => $item->sellingStatus->currentPrice,
+                                                        "name" => (string)$item->title,
+                                                        "price" => (double)$item->sellingStatus->currentPrice,
+                                                        "reg_price" => (double)$item->sellingStatus->currentPrice,
                                                         "description" => "",
-							"asin" => $item->itemId,
-                                                        "images" => $item->galleryURL,
-                                                        "link" => $item->viewItemURL
+							"asin" => (string)$item->itemId,
+                                                        "images" => (string)$item->galleryURL,
+                                                        "link" => (string)$item->viewItemURL
                                                       );
 			}
 		}

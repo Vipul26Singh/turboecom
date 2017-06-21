@@ -70,7 +70,7 @@ class EbayConfig
 			$is_valid = true;
 			$ebay_category = strval(Tools::getValue('TurboeCom_ebay_category'));
 			$search_keyword = strval(Tools::getValue('TurboeCom_ebay_keyword'));
-			$ebay_count = strval(Tools::getValue('TurboeCom_ebay_fetch_count'));
+			$ebay_page = strval(Tools::getValue('TurboeCom_ebay_fetch_count'));
 			$prestashop_category = strval(Tools::getValue('TurboeCom_ebay_prestashop_category'));
 
 			if(empty($ebay_category)){
@@ -83,11 +83,11 @@ class EbayConfig
 				$is_valid = false;
 			}
 
-			if(empty($ebay_count)){
-				$output .= $this->this_module->displayError($this->this_module->l('Please ennter number of products to be fetched'));
+			if(empty($ebay_page)){
+				$output .= $this->this_module->displayError($this->this_module->l('Please enter page number'));
 				$is_valid = false;
-			}else if(!is_numeric($ebay_count)){
-				$output .= $this->this_module->displayError($this->this_module->l('Number of products to be fetched is not numeric'));
+			}else if(!is_numeric($ebay_page)){
+				$output .= $this->this_module->displayError($this->this_module->l('Page number is not numeric'));
 				$is_valid = false;
 			}
 
@@ -106,50 +106,61 @@ class EbayConfig
 				}
 			}
 
-			if($is_valid){
+			if($is_valid)
+			{
 				$ebay = new ebayAPI($app_id, $campaign_id);
 
 				$arr = array();
-				$page_count = $ebay_count/10;
-				if($page_count == 0){
-					$page_count = 1;
-				}
+				$arr = $ebay->searchProductHelper($search_keyword, $ebay_category, $ebay_page);
+				$displayContent = null;
 
-				for($i=1; $i<=$page_count; $i++){
-					$arr = $ebay->searchProductHelper($search_keyword, $ebay_category, $i);
+                                $displayContent .= "<div id='content' class='bootstrap'><br><br><br><div><button type='button' class='btn btn-success btn-lg' onclick='nextEbay(this)'>Next Page</button></div><br><table id='save-product' class='table table-bordered table-hover'><thead><tr><th>Image</th><th>Name</th><th>Description</th><th>Action</th><th class='hidden'>Content</th></tr></thead><tbody>";
 
-					foreach($arr as $p){
 
-						if($this->this_module->fetchAffiliateProductId($p['asin']) == 0){
-							$short_description = "<ul>";
-							foreach($p['description'] as $desc){
-								$desc = trim($desc);
-								$short_description .= "<li>{$desc}</li>";
+				$count = 0;
+                                        foreach($arr as $p){
+
+                                                $count++;
+                                                $short_description = "<ul>";
+
+                                                        $des_count = 0;
+
+							if(!empty($p['description'])){
+								foreach($p['description'] as $desc){
+									$des_count++;
+									$desc = trim($desc);
+									$short_description .= "<li>{$desc}</li>";
+
+									if($des_count==3){
+										break;
+									}
+								}
 							}
-							$short_description .="</ul><br><br>";
-							$short_description .= "<p><a href={$p['link']} target='_blank' class='btn btn-default'>BUY NOW</a></p>";
 
-							$product_id = $this->this_module->addProduct($p['name'], $prestashop_category, $p['price'], $short_description);
+                                                        $short_description .="</ul><br><br>";
+                                                        $short_description .= "<p><a href={$p['link']} target='_blank' class='btn btn-default'>BUY NOW</a></p>";
 
-							if($product_id != 0){
-								$this->this_module->updateProduct("affiliate_product_id", $p['asin'], $product_id);
-								$this->this_module->updateProduct("affiliate_website", "ebay.com", $product_id);
+                                                        $array_send = array();
+                                                        $array_send['name'] = str_replace('"', '-inch', $p['name']);
 
-								$imageAdd = new ImageAdd();
-								try{
-									$image_id = $imageAdd->insertImageInPrestashop($product_id, $p['images'], $p['name']);
-									
-									if($image_id == 0){
-                                                                                $this->this_module->deleteProduct($product_id);
-                                                                        }
-                                                                }catch(Exception $e){
-                                                                                $this->this_module->deleteProduct($product_id);
-                                                                }
+                                                        $array_send['short_description'] = $short_description;
+                                                        $array_send['images'] = $p['images'];
+                                                        $array_send['prestashop_category'] = $prestashop_category;
+                                                        $array_send['price'] = $p['price'];
+                                                        $array_send['asin'] = $p['asin'];
+                                                        $array_send['website'] = 'ebay.com';
+							
+                                                        $json_send = json_encode($array_send, true);
 
-							}
-						}
-					}
-				}
+                                                        $displayContent .= "<tr id='{$count}'><td><a class = 'thumbnail' target='_blank' href='{$p['images']}'><img src='{$p['images']}' style='height:100px;' class='img-thumbnail' alt='NA' ></a></td><td>{$p['name']}</td><td>{$short_description}</td><td><button type='button' class='btn btn-danger delete-row' onclick='deleteRow(this)'>Remove</button>  <button type='button' class='btn btn-primary' data-loading-text=\"<i class='icon-spinner icon-spin icon-large'></i>\" id='{$count}_add_button' onclick='addRow({$count}, this)'>Add</button></td><td class='hidden' id='data_{$count}'>{$json_send}</td></tr>";
+                                        }
+                                        $displayContent .= "</tbody><div></table><div><button type='button' class='btn btn-success btn-lg' onclick='nextEbay(this)'>Next Page</button></div></div>";
+
+					Configuration::updateValue('ebay_page_number', $ebay_page+1);
+                                Configuration::updateValue('ebay_keyword', $search_keyword);
+                                Configuration::updateValue('ebay_prestashop_category', $prestashop_category);
+                                Configuration::updateValue('ebay_category', $ebay_category);
+				echo $displayContent;
 			}
 		}
 		return $output;
@@ -207,8 +218,8 @@ class EbayConfig
 					     ),
 					array(
 						'type' => 'text',
-						'label' => $this->this_module->l('Number of products to be fetched'),
-						'desc' => $this->this_module->l('Choose multiple of 10'),
+						'label' => $this->this_module->l('Start page for pagination'),
+                                                'desc' => $this->this_module->l('Do not change if you are not clear'),
 						'name' => 'TurboeCom_ebay_fetch_count',
 						'required' => true
 					     ),
@@ -262,7 +273,11 @@ class EbayConfig
 					)
 				);
 
-		$helper->fields_value['TurboeCom_ebay_fetch_count'] = 20;
+
+		 $helper->fields_value['TurboeCom_ebay_fetch_count'] = Configuration::get('ebay_page_number');
+                $helper->fields_value['TurboeCom_ebay_keyword'] = Configuration::get('ebay_keyword');
+                 $helper->fields_value['TurboeCom_ebay_prestashop_category'] = Configuration::get('ebay_prestashop_category');
+                 $helper->fields_value['TurboeCom_ebay_category'] = Configuration::get('ebay_category');
 
 		return $helper->generateForm($fields_form);
 	}

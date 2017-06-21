@@ -19,13 +19,13 @@ if(file_exists(__DIR__."/affiliate/aliexpress/aliexpressAPI.php")){
 
 class TurboeCom extends Module
 {
-	public $amazon_allowed = false;
-	public $ebay_allowed = false;
-	public $aliexpress_allowed = false;
-	public $class_module_name = 'turboecom'; 
-	public $amazonConfig;
-	public $aliexpressConfig;
-	public $ebayConfig;
+	protected $amazon_allowed = false;
+	protected $ebay_allowed = false;
+	protected $aliexpress_allowed = false;
+	protected $class_module_name = 'turboecom'; 
+	protected $amazonConfig;
+	protected $aliexpressConfig;
+	protected $ebayConfig;
 
 	public function __construct()
 	{
@@ -42,13 +42,13 @@ class TurboeCom extends Module
 			$this->amazon_allowed = true;
 		}
 
-                if(file_exists(__DIR__."/affiliate/ebay/ebayAPI.php")){
-                        $this->ebay_allowed = true;
-                } 
+		if(file_exists(__DIR__."/affiliate/ebay/ebayAPI.php")){
+			$this->ebay_allowed = true;
+		} 
 
 		if(file_exists(__DIR__."/affiliate/aliexpress/aliexpressAPI.php")){
-                        $this->aliexpress_allowed = true;
-                }
+			$this->aliexpress_allowed = true;
+		}
 
 		$this->displayName = $this->l('TurboeCom');
 		$this->description = $this->l('Affilite programs wirh e-commerce');
@@ -65,22 +65,24 @@ class TurboeCom extends Module
 		if($this->ebay_allowed == true){
 			$this->ebayConfig = new EbayConfig($this);
 			$this->ebayConfig->checkConfiguration();
-                }
+		}
 
 		if($this->aliexpress_allowed == true){
-                        $this->aliexpressConfig = new AliexpressConfig($this);
-                        $this->aliexpressConfig->checkConfiguration();
-                }
+			$this->aliexpressConfig = new AliexpressConfig($this);
+			$this->aliexpressConfig->checkConfiguration();
+		}
 
 
 	}
 
 	public function hookDisplayBackOfficeHeader(){
-                $this->context->controller->addCSS($this->_path.'/views/css/back.css', 'all');
+		$this->context->controller->addCSS($this->_path.'/views/css/back.css', 'all');
 		$this->context->controller->addJS($this->_path.'/views/js/back.js');
 		$this->context->controller->addJS($this->_path.'/views/js/back_add.js');
 		$this->context->controller->addJS($this->_path.'/views/js/amazon.js');
-        }
+		$this->context->controller->addJS($this->_path.'/views/js/aliexpress.js');
+		$this->context->controller->addJS($this->_path.'/views/js/ebay.js');
+	}
 
 	public function install()
 	{
@@ -95,12 +97,21 @@ class TurboeCom extends Module
 		Configuration::updateValue('TurboeCom_ebay_compaign_id', '');
 		Configuration::updateValue('TurboeCom_aliexpress_app_secret', '');
 		Configuration::updateValue('TurboeCom_aliexpress_tracking_id', '');
+
 		Configuration::updateValue('amazon_page_number', '1');
-		Configuration::updateValue('ebay_page_number', '1');
-		Configuration::updateValue('aliexpress_page_number', '1');
 		Configuration::updateValue('amazon_keyword', '');
 		Configuration::updateValue('amazon_prestashop_category', '');
 		Configuration::updateValue('amazon_category', '');
+
+		Configuration::updateValue('ebay_keyword', '');
+		Configuration::updateValue('ebay_page_number', '1');
+		Configuration::updateValue('ebay_prestashop_category', '');
+		Configuration::updateValue('ebay_category', '');
+
+		Configuration::updateValue('aliexpress_keyword', '');
+		Configuration::updateValue('aliexpress_page_number', '1');
+		Configuration::updateValue('aliexpress_prestashop_category', '');
+		Configuration::updateValue('aliexpress_category', '');
 
 
 		return $result;
@@ -257,7 +268,6 @@ class TurboeCom extends Module
 					PRIMARY KEY (`site_name`, `category_name`)
 					) DEFAULT CHARSET=utf8;');
 
-
 		try{
 			$sql_add_asin = 'ALTER TABLE `'._DB_PREFIX_.'product` ADD COLUMN `affiliate_product_id` VARCHAR(100) NULL';
 			Db::getInstance()->query($sql_add_asin);
@@ -270,14 +280,14 @@ class TurboeCom extends Module
 			Db::getInstance()->query($sql_add_site);
 		}catch(Exception $e){
 
-                }
+		}
 
 		try{
 			$sql_add_index = 'ALTER TABLE `'._DB_PREFIX_.'product` ADD INDEX `turboecom_affiliate_product_id` (`affiliate_product_id`)';
 			Db::getInstance()->query($sql_add_index);
 		}catch(Exception $e){
 
-                }
+		}
 
 		return true;
 	}
@@ -286,41 +296,6 @@ class TurboeCom extends Module
 	{
 		return parent::uninstall();
 	}
-
-	private function initList()
-	{
-		$this->fields_list = array(
-				'id_category' => array(
-					'title' => $this->l('Id'),
-					'width' => 140,
-					'type' => 'text',
-					),
-				'name' => array(
-					'title' => $this->l('Name'),
-					'width' => 140,
-					'type' => 'text',
-					),
-				);
-		$helper = new HelperList();
-
-		$helper->shopLinkType = '';
-
-		$helper->simple_header = false;
-
-		// Actions to be displayed in the "Actions" column
-		$helper->actions = array('edit', 'delete', 'view');
-
-		$helper->identifier = 'id_category';
-		$helper->show_toolbar = true;
-		$helper->title = 'HelperList';
-		$helper->table = $this->name.'_categories';
-		$helper->actions = array('edit', 'delete', 'view');
-
-		$helper->token = Tools::getAdminTokenLite('AdminModules');
-		$helper->currentIndex = AdminController::$currentIndex.'&configure='.$this->name;
-		return $helper;
-	}
-
 
 	public function getContent()
 	{
@@ -331,69 +306,17 @@ class TurboeCom extends Module
 		}
 
 		if($this->ebay_allowed == true){
-                        $output.=$this->ebayConfig->getEbayContent().$this->ebayConfig->ebayConfig().$this->ebayConfig->ebayForm();
-                }
+			$output.=$this->ebayConfig->getEbayContent().$this->ebayConfig->ebayConfig().$this->ebayConfig->ebayForm();
+		}
 
 		if($this->aliexpress_allowed == true){
-                        $output.=$this->aliexpressConfig->getAliexpressContent().$this->aliexpressConfig->aliexpressConfig().$this->aliexpressConfig->aliexpressForm();
-                }
+			$output.=$this->aliexpressConfig->getAliexpressContent().$this->aliexpressConfig->aliexpressConfig().$this->aliexpressConfig->aliexpressForm();
+		}
 
 		return $output;
 	}
 
-
-	public function addProduct($name, $category_id, $price, $short_description){
-		if(empty($name) || empty($category_id) || empty($price)){
-			return 0;
-		}
-
-		$id_product = 0;
-
-		$product = new Product();
-		$product->ean13 = 0;
-		$product->name = array((int)Configuration::get('PS_LANG_DEFAULT') =>  $name);;
-		$product->id_category = $category_id;
-		$product->id_category_default = $category_id;
-		$product->redirect_type = '404';
-		$product->price = $price;
-		$product->quantity = 1;
-		$product->minimal_quantity = 1;
-		$product->show_price = 1;
-		$product->on_sale = 0;
-		$product->online_only = 1;
-		$product->is_virtual=0;
-		$product->available_for_order = 0;
-		//$product->description = $short_description;
-		$product->description_short = $short_description;
-		$product->available_now = 0;	
-
-		try{
-			$product->add();
-			$product->addToCategories(array($category_id));
-
-			$id_product = $this->maxProductId();	
-		}catch(Exception $e){
-			$id_product = 0;
-		}
-
-		return $id_product;
-	}
-
-	public function fetchAffiliateProductId($asin){
-                $sql = new DbQuery();
-                $sql->from('product');
-                $sql->select('count(*) as count');
-                $sql->where("affiliate_product_id = '".$asin."'");
-
-                return Db::getInstance()->executeS($sql)[0]['count'];
-        }
-
-        public function updateProduct($column, $val, $product_id){
-                $sql = "update "._DB_PREFIX_."product set  {$column} = '{$val}' WHERE id_product = '{$product_id}'";
-                Db::getInstance()->execute($sql);
-        }
-
-        public function fetchPrestashopCategory()
+	public function fetchPrestashopCategory()
         {
                 $sql = new DbQuery();
                 $sql->from('category_lang');
@@ -414,22 +337,6 @@ class TurboeCom extends Module
                 return Db::getInstance()->executeS($sql);
 
         }
-
-	public function maxProductId()
-        {
-                $sql = new DbQuery();
-                $sql->from('product');
-                $sql->select('max(id_product) as product_id');
-
-                return Db::getInstance()->executeS($sql)[0]['product_id'];
-        }
-
-	public function deleteProduct($product_id){
-		$product = new ProductCore($productId, false);
-		return $product->delete();
-	}
-
-
 }
 
 ?>
