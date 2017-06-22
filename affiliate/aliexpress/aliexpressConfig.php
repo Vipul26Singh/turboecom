@@ -317,7 +317,7 @@ class AliexpressConfig
 					     ),
 					array(
 						'type' => 'text',
-						'label' => $this->this_module->l('Aliexpress App Key (for portals.aliexpress.com)'),
+						'label' => $this->this_module->l('Aliexpress App secret (for portals.aliexpress.com)'),
 						'name' => 'TurboeCom_aliexpress_app_secret',
 						'required' => true
 					     ),
