@@ -24,6 +24,10 @@ class ProductHelper
                 $product = new Product();
                 $product->ean13 = 0;
                 $product->name = array((int)Configuration::get('PS_LANG_DEFAULT') =>  $name);
+
+		$link_re = str_replace(' ', '-', $name);
+
+		$product->link_rewrite = array((int)Configuration::get('PS_LANG_DEFAULT') =>  $link_re);
                 $product->id_category = $category_id;
                 $product->id_category_default = $category_id;
                 $product->redirect_type = '404';

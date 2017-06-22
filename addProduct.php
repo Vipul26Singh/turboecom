@@ -10,7 +10,8 @@ if(strlen($arr['name']) > 120){
 	$arr['name'] = substr($arr['name'], 0, 120);
 }
 
-$arr['name'] = preg_replace('/[^a-zA-Z0-9\']/', '_', $arr['name']);
+
+$arr['name'] = preg_replace('/[^a-zA-Z0-9 \']/', '', $arr['name']);
 $arr['name'] = str_replace("'", '', $arr['name']);
 
 $product = new ProductHelper();
@@ -35,7 +36,8 @@ if($product_id != 0)
 	try
 	{
 		$imageAdd = new ImageAdd();
-		$image_id = $imageAdd->insertImageInPrestashop($product_id, $arr['images'], $arr['name']);
+			$img_name = str_replace(' ', '-',  $arr['name']);
+		$image_id = $imageAdd->insertImageInPrestashop($product_id, $arr['images'], $img_name);
 		if($image_id == 0){
 			//$product->deleteProduct($product_id)
 			$message = "Unable to add image";
@@ -53,6 +55,7 @@ if($product_id != 0)
 {
 	$message = "Unable to add producct";
 }
+
 echo $message;
 return $message;
 

@@ -3,7 +3,7 @@
 class ImageAdd
 {
 
-	private function copyImage($id_entity, $id_image = null, $url = '', $entity = 'products', $regenerate = true)
+	public function copyImage($id_entity, $id_image = null, $url = '', $entity = 'products', $regenerate = true)
 	{
 		$tmpfile = tempnam(_PS_TMP_IMG_DIR_, 'ps_import');
 		$watermark_types = explode(',', Configuration::get('WATERMARK_TYPES'));
